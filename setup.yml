@@ -1,0 +1,207 @@
+- hosts: servers
+  vars:
+    private_key_path: "{{ lookup('env','PRIVATE_KEY_PATH') }}"
+    aws_key: "{{lookup('env', 'AWS_KEY')}}"
+    aws_secret: "{{lookup('env', 'AWS_SECRET')}}"
+  user: vagrant
+  sudo: yes
+  tasks:
+    #####################################
+    # Update packages
+    #####################################
+    - name: Add repository for ruby 2.2
+      apt_repository: repo=ppa:brightbox/ruby-ng
+    - name: Add repository for php 5.5
+      apt_repository: repo=ppa:ondrej/php5
+
+    - name: Upgrade packages
+      apt: update_cache=yes upgrade=yes
+
+    #####################################
+    # Setup PHP
+    #####################################
+    - name: Install php 5.5
+      apt: pkg={{item}}
+      with_items:
+      - php5
+      - php5-cli
+      - php5-curl
+      - php5-mysql
+      - php5-gd
+      notify: restart apache
+    - name: check composer installed
+      command: test -f /usr/bin/composer
+      ignore_errors: true
+      register: var_composer_installed
+      failed_when: false
+      changed_when: var_composer_installed.rc != 0
+    - name: install composer
+      shell: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin
+      when: var_composer_installed.rc != 0
+    - name: move composer.phar to composer
+      command: mv /usr/bin/composer.phar /usr/bin/composer
+      when: var_composer_installed.rc != 0
+
+    #####################################
+    # Setup MySQL
+    #####################################
+    - name: Install mysql
+      apt: pkg={{item}}
+      with_items:
+      - mysql-server-5.6
+      - python-mysqldb
+    - name: create mysql db
+      mysql_db: name=attache state=present
+    - name: create mysql user
+      mysql_user: name=attache password=attache priv=attache.*:ALL state=present
+
+    #####################################
+    # Setup git
+    #####################################
+    - name: Install git
+      apt: name=git
+    - name: copy private key
+      copy: src={{private_key_path}} dest=/home/vagrant/.ssh/id_rsa owner=vagrant group=vagrant mode=0600
+
+    #####################################
+    # Setup node.js(grunt, gulp, bower)
+    #####################################
+    - name: Install node.js
+      apt: pkg={{item}}
+      with_items:
+      - nodejs
+      - npm
+    - name: Make symlink to node
+      file: path=/usr/bin/node src=/usr/bin/nodejs state=link
+    - name: install grunt-cli
+      npm: name=grunt-cli global=yes
+    - name: install gulp
+      npm: name=gulp global=yes
+    - name: install bower
+      npm: name=bower global=yes
+
+    #####################################
+    # Setup Ruby(compass)
+    #####################################
+    - name: Install ruby
+      apt: pkg={{item}}
+      with_items:
+      - ruby2.2
+      - ruby2.2-dev
+    - name: Make symlink to ruby2.2
+      file: path=/usr/bin/ruby src=/usr/bin/ruby2.2 state=link
+    - name: Make symlink to gem2.2
+      file: path=/usr/bin/gem src=/usr/bin/gem2.2 state=link
+    - name: gem update
+      gem: name=system
+    - name: gem install compass
+      gem: name=compass
+      sudo: no
+
+    #####################################
+    # Setup Apache2
+    #####################################
+    - name: Install apatche2
+      apt: pkg={{item}}
+      with_items:
+      - apache2
+      - libapache2-mod-php5
+    - name: make logs dir
+      command: mkdir data/logs creates=data/logs
+      sudo: no
+    - name: enable mod_rewrite
+      apache2_module: name=rewrite state=present
+      notify: restart apache
+    - name: copy appache2.conf
+      template: dest=/etc/apache2/apache2.conf src=apache2.conf.j2 group=root owner=root mode=644
+      notify: restart apache
+
+    #####################################
+    # Setup shell 
+    #####################################
+    - name: check ruby gem path
+      shell: cat .profile | grep \.gem/ruby/2.2.0/bin
+      ignore_errors: true
+      register: var_gem_path
+      failed_when: false
+      changed_when: var_gem_path.rc != 0
+    - name: set gem path
+      shell: echo export PATH=\$HOME/.gem/ruby/2.2.0/bin:\$PATH >> .profile
+      when: var_gem_path.rc != 0
+
+    - name: check BUCKET
+      shell: cat .profile | grep BUCKET
+      ignore_errors: true
+      register: var_bucket
+      failed_when: false
+      changed_when: var_bucket.rc != 0
+    - name: set BUCKET
+      shell: echo export BUCKET=attache-dev >> .profile
+      when: var_bucket.rc != 0
+
+    - name: check DB_DSN
+      shell: cat .profile | grep DB_DSN
+      ignore_errors: true
+      register: var_db_dsn
+      failed_when: false
+      changed_when: var_db_dsn.rc != 0
+    - name: set DB_DSN
+      shell: echo "export DB_DSN=\"mysql:host=localhost;dbname=attache;port=3306\"" >> .profile
+      when: var_db_dsn.rc != 0
+
+    - name: check DB_USERNAME
+      shell: cat .profile | grep DB_USERNAME
+      ignore_errors: true
+      register: var_db_username
+      failed_when: false
+      changed_when: var_db_username.rc != 0
+    - name: set DB_USERNAME
+      shell: echo export DB_USERNAME=attache >> .profile
+      when: var_db_username.rc != 0
+
+    - name: check DB_PASSWORD
+      shell: cat .profile | grep DB_PASSWORD
+      ignore_errors: true
+      register: var_db_password
+      failed_when: false
+      changed_when: var_db_password.rc != 0
+    - name: set DB_PASSWORD
+      shell: echo export DB_PASSWORD=attache >> .profile
+      when: var_db_password.rc != 0
+
+    #####################################
+    # Setup Attache
+    #####################################
+    - name: git clone Attache
+      git:
+        repo: git@github.com:givery-technology/Attache.git 
+        dest: /home/vagrant/data/Attache
+        accept_hostkey: true
+      sudo: no
+    - name: git clone Attache_Android
+      git:
+        repo: git@github.com:givery-technology/Attache_Android.git 
+        dest: /home/vagrant/data/Attache_Android
+        accept_hostkey: true
+      sudo: no
+
+    - name: composer install
+      command: composer install chdir=data/Attache
+    - name: composer update
+      command: composer update chdir=data/Attache
+    - name: npm install
+      npm: path=/home/vagrant/data/Attache
+    - name: grunt build
+      command: grunt build --force chdir=data/Attache
+      sudo: no
+      environment:
+        PATH: /home/vagrant/.gem/ruby/2.2.0/bin:{{ ansible_env.PATH}}
+
+    - name: create mysql table
+      mysql_db: name=attache state=import target=/home/vagrant/data/Attache/sql/create.sql
+      failed_when: false
+      ignore_errors: yes
+
+  handlers:
+    - name: restart apache
+      service: name=apache2 state=restarted
