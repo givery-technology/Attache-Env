@@ -1,6 +1,5 @@
 - hosts: servers
   vars:
-    private_key_path: "{{ lookup('env','PRIVATE_KEY_PATH') }}"
     aws_key: "{{lookup('env', 'AWS_KEY')}}"
     aws_secret: "{{lookup('env', 'AWS_SECRET')}}"
   user: vagrant
@@ -60,8 +59,6 @@
     #####################################
     - name: Install git
       apt: name=git
-    - name: copy private key
-      copy: src={{private_key_path}} dest=/home/vagrant/.ssh/id_rsa owner=vagrant group=vagrant mode=0600
 
     #####################################
     # Setup node.js(grunt, gulp, bower)
