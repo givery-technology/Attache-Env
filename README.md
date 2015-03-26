@@ -88,3 +88,8 @@ Check existence of .vagrant/machines/default/virtualbox/private_key
 If you destroyed the virtual machine and recreate it.  
 Its host signature changes.  
 So, you have to remove existing host signature(192.168.33.10) from known_hosts.
+
+### Passphrase for ssh private key
+If you set passphrase to ssh private key, setup.yml might not work fine.  
+If so, please comment out git clone task and do it manually.
+
