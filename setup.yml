@@ -187,8 +187,6 @@
 
     - name: composer install
       command: composer install chdir=data/Attache
-    - name: composer update
-      command: composer update chdir=data/Attache
     - name: npm install
       npm: path=/home/vagrant/data/Attache
     - name: grunt build

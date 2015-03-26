@@ -51,10 +51,10 @@ So, you can edit source codes from host machine.
 ## Run
 Access following urls with your browser
 
-- Top - http://192.168.33.10/
-- Admin - http://192.168.33.10/patrash
-- Company - http://192.168.33.10/companies
-- Student - http://192.168.33.10/sp
+- Top - http://192.168.33.10:8888/
+- Admin - http://192.168.33.10:8888/patrash
+- Company - http://192.168.33.10:8888/companies
+- Student - http://192.168.33.10:8888/sp
 
 No user is registered initially.  
 You can make admin user with following command
