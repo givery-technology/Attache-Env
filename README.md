@@ -3,7 +3,7 @@
 ## Prerequisite
 
 - VirtualBox
-- Vagrant
+- Vagrant 1.7 or later
 - Ansible
 
 Add ubunt1404 to vagrant box
@@ -79,3 +79,12 @@ mysql -uattache -pattache -Dattache
 ## Develop
 ToDo
 
+## Trouble shooting
+### Use vagrant 1.7 or later
+The location of ssh private key was changed from 1.7.  
+Check existence of .vagrant/machines/default/virtualbox/private_key
+
+### Maintain ~/.ssh/known_hosts
+If you destroyed the virtual machine and recreate it.  
+Its host signature changes.  
+So, you have to remove existing host signature(192.168.33.10) from known_hosts.
