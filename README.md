@@ -90,6 +90,5 @@ Its host signature changes.
 So, you have to remove existing host signature(192.168.33.10) from known_hosts.
 
 ### Passphrase for ssh private key
-If you set passphrase to ssh private key, setup.yml might not work fine.  
-If so, please comment out git clone task and do it manually.
-
+The private key which is copied to virtual machine must not have passphrase.
+If you don't have the private key without pasphrase, please make new one and register it to GitHub.
