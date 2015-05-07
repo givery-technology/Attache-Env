@@ -217,9 +217,13 @@
       command: forever list
       register: forever_list
       changed_when: false
+      sudo: no
     - name: start API ver2.0 server
-      command: forever start /home/vagrant/data/Attache-node-api/server.js
-      when: "forever_list.stdout.find('/home/vagrant/data/Attache-node-api/server.js') == -1"
+      # the -w flag reloads the server when app files have changed
+      # the --uid flag lets us assign a unique ID to the daemon so we can find it later in "forever list"
+      command: forever -w --uid "attacheNodeServerID" start server.js chdir=data/Attache-node-api
+      when: "forever_list.stdout.find('attacheNodeServerID') == -1"
+      sudo: no
 
     - name: create mysql table
       mysql_db: name=attache state=import target=/home/vagrant/data/Attache/sql/create.sql
