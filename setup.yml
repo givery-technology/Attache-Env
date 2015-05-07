@@ -61,7 +61,7 @@
     - name: Install git
       apt: name=git
     - name: copy private key
-      copy: src={{private_key_path}} dest=/home/vagrant/.ssh/id_rsa owner=vagrant group=vagrant mode=0600    
+      copy: src={{private_key_path}} dest=/home/vagrant/.ssh/id_rsa owner=vagrant group=vagrant mode=0600
 
     #############################################
     # Setup node.js(grunt, gulp, bower, forever)
@@ -203,6 +203,7 @@
       command: composer install chdir=data/Attache
     - name: npm install
       npm: path=/home/vagrant/data/Attache
+      sudo: no
     - name: grunt build
       command: grunt build --force chdir=data/Attache
       sudo: no
@@ -211,6 +212,7 @@
 
     - name: npm install (API ver2.0)
       npm: path=/home/vagrant/data/Attache-node-api
+      sudo: no
     - name: check list of Node.js apps running
       command: forever list
       register: forever_list
