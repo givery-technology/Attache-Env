@@ -63,9 +63,9 @@
     - name: copy private key
       copy: src={{private_key_path}} dest=/home/vagrant/.ssh/id_rsa owner=vagrant group=vagrant mode=0600    
 
-    #####################################
-    # Setup node.js(grunt, gulp, bower)
-    #####################################
+    #############################################
+    # Setup node.js(grunt, gulp, bower, forever)
+    #############################################
     - name: Install node.js
       apt: pkg={{item}}
       with_items:
@@ -79,6 +79,10 @@
       npm: name=gulp global=yes
     - name: install bower
       npm: name=bower global=yes
+    - name: install forever (to run Node.js app)
+      npm: name=forever global=yes
+    - name: install express
+      npm: name=express global=yes
 
     #####################################
     # Setup Ruby(compass)
@@ -107,14 +111,18 @@
       - apache2
       - libapache2-mod-php5
     - name: make logs dir
-      command: mkdir data/logs creates=data/logs
-      sudo: no
+      file: path=data/logs state=directory mode=755
     - name: enable mod_rewrite
       apache2_module: name=rewrite state=present
+      notify: restart apache
+    - name: enables proxy_http
+      apache2_module: name=proxy_http state=present
       notify: restart apache
     - name: copy appache2.conf
       template: dest=/etc/apache2/apache2.conf src=apache2.conf.j2 group=root owner=root mode=644
       notify: restart apache
+    - name: ensure apache is running (and enable it at boot)
+      service: name=apache2 state=started enabled=yes
 
     #####################################
     # Setup shell 
@@ -178,10 +186,16 @@
         dest: /home/vagrant/data/Attache
         accept_hostkey: true
       sudo: no
-    - name: git clone Attache_Android
+    - name: git clone attache-web
       git:
-        repo: git@github.com:givery-technology/Attache_Android.git 
-        dest: /home/vagrant/data/Attache_Android
+        repo: git@github.com:givery-technology/attache-web.git
+        dest: /home/vagrant/data/attache-web
+        accept_hostkey: true
+      sudo: no
+    - name: git clone Attache-node-api
+      git:
+        repo: git@github.com:givery-technology/Attache-node-api.git
+        dest: /home/vagrant/data/Attache-node-api
         accept_hostkey: true
       sudo: no
 
@@ -194,6 +208,16 @@
       sudo: no
       environment:
         PATH: /home/vagrant/.gem/ruby/2.2.0/bin:{{ ansible_env.PATH}}
+
+    - name: npm install (API ver2.0)
+      npm: path=/home/vagrant/data/Attache-node-api
+    - name: check list of Node.js apps running
+      command: forever list
+      register: forever_list
+      changed_when: false
+    - name: start API ver2.0 server
+      command: forever start /home/vagrant/data/Attache-node-api/server.js
+      when: "forever_list.stdout.find('/home/vagrant/data/Attache-node-api/server.js') == -1"
 
     - name: create mysql table
       mysql_db: name=attache state=import target=/home/vagrant/data/Attache/sql/create.sql

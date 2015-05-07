@@ -143,7 +143,7 @@ IncludeOptional mods-enabled/*.conf
 # Include list of ports to listen on
 # Include ports.conf
 
-Listen 8888
+Listen 8080
 
 # Sets the default security model of the Apache2 HTTPD server. It does
 # not allow access to the root filesystem outside of /usr/share and /var/www.
@@ -237,3 +237,10 @@ SetEnv BUCKET attache-dev
 <IfModule mod_php5.c>
   php_value short_open_tag 1
 </IfModule>
+
+<VirtualHost *:*> 
+  ServerName localhost
+  ProxyPass /api/v2 http://localhost:8888/api/v2
+  ProxyPassReverse /api/v2 http://localhost:8888/api/v2
+</VirtualHost>
+
