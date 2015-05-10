@@ -226,6 +226,8 @@ IncludeOptional conf-enabled/*.conf
 
 # vim: syntax=apache ts=4 sw=4 sts=4 sr noet
 
+ServerName 192.168.33.10
+
 SetEnv FUEL_ENV development
 SetEnv DB_DSN mysql:host=localhost;dbname=attache;port=3306
 SetEnv DB_USERNAME attache
@@ -237,10 +239,4 @@ SetEnv BUCKET attache-dev
 <IfModule mod_php5.c>
   php_value short_open_tag 1
 </IfModule>
-
-<VirtualHost *:*> 
-  ServerName localhost
-  ProxyPass /api/v2 http://localhost:8888/api/v2
-  ProxyPassReverse /api/v2 http://localhost:8888/api/v2
-</VirtualHost>
 
