@@ -63,6 +63,18 @@
     - name: copy private key
       copy: src={{private_key_path}} dest=/home/vagrant/.ssh/id_rsa owner=vagrant group=vagrant mode=0600
 
+    #####################################
+    # Install pkg-config (needed to preinstall Sharp)
+    #####################################
+    - name: Install pkg-config
+      apt: name=pkg-config
+
+    #####################################
+    # Setup sharp (needed by attache-node-api for image resizing)
+    #####################################
+    - name: Preinstall Sharp
+      shell: curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | bash -
+
     #############################################
     # Setup node.js(grunt, gulp, bower, forever)
     #############################################
