@@ -73,7 +73,7 @@
     # Setup sharp (needed by attache-node-api for image resizing)
     #####################################
     - name: Preinstall Sharp
-      shell: curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | bash -
+      shell: curl -s https://raw.githubusercontent.com/lovell/sharp/v0.10.1/preinstall.sh | bash -
 
     #############################################
     # Setup node.js(grunt, gulp, bower, forever)
