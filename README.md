@@ -20,6 +20,8 @@ export PRIVATE_KEY_PATH=~/.ssh/id_rsa
 # AWS setting
 export AWS_KEY="AWS access key for attache-dev"
 export AWS_SECRET="AWS secret key for attache-dev"
+export SENDGRID_USER="Username for SendGrid account"
+export SENDGRID_PASSWORD="Password for SendGrid account"
 
 ```
 
